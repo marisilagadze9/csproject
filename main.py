@@ -1,4 +1,7 @@
+from database import init_db
 from auth import register, log_in
+
+init_db()
 
 while True:
     print("\n1. Register\n2. Login\n3. Exit")
