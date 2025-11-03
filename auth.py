@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime
-from storage import load_users, save_users, load_history, save_history
 from database import get_connection
+from ip import checkip , blockip,get_ip
 
 MAX_ATTEMPTS=5
 
@@ -20,6 +20,7 @@ def register():
 
     username=input("Enter username:  ")
     password=input("Enter password:   ")
+    
     
     c.execute("SELECT* FROM users WHERE username=?",(username,))
     if c.fetchall():
@@ -40,6 +41,12 @@ def log_in():
 
     username=input("Enter username:  ")
     password=input("Enter password:  ")
+    ip=get_ip()
+
+    if checkip(ip):
+        print(f"Access denied: IP {ip} is blocked")
+        conn.close()
+        return
 
     c.execute("SELECT * FROM users WHERE username=?",(username,))
     user=c.fetchone()
@@ -60,15 +67,17 @@ def log_in():
     if hashed==db_password:
         print("Log in successful")
         c.execute("UPDATE users SET attempts=0 WHERE username=?",(username,))
-        c.execute("INSERT INTO login_history (username) VALUES (?)",(username,))
+        c.execute("INSERT INTO login_history (username, ip_address, success) VALUES (?, ?, 1)", (username, ip))
     else:
         attempts+=1
         print(f" Wrong password. Attempt {attempts}/{MAX_ATTEMPTS}")
+        c.execute("INSERT INTO login_history (username, ip_address, success) VALUES (?, ?, 0)", (username, ip))
         if attempts>=MAX_ATTEMPTS:
             print("Account blocked")
             c.execute("UPDATE users set blocked=1 WHERE  username=?",(username,))
-        else:
-            c.execute("UPDATE users SET attempts=? WHERE username=?",(attempts,username))
+        
+        c.execute("UPDATE users SET attempts=? WHERE username=?",(attempts,username))
+        blockip(ip)
     conn.commit()
     conn.close()
 

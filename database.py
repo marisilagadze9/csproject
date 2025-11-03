@@ -26,6 +26,22 @@ def init_db():
         FOREIGN KEY (username) REFERENCES users(username)  
         )
 """)
+    try:
+      c.execute("ALTER TABLE login_history ADD COLUMN ip_address TEXT;")
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        c.execute("ALTER TABLE login_history ADD COLUMN success INTEGER;")
+    except sqlite3.OperationalError:
+        pass
+
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS blocked_ips(
+        ip_address TEXT PRIMARY KEY
+    )
+    """)
     
     conn.commit()
     conn.close()
