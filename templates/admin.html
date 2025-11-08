@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            width: 700px;
+        }
+        h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .message {
+            color: red;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            margin-bottom: 15px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+        input[type="submit"] {
+            background-color: #4facfe;
+            color: white;
+            border: none;
+            padding: 10px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        input[type="submit"]:hover {
+            background-color: #00c6ff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        td {
+            font-size: 14px;
+        }
+        td.status-success {
+            color: green;
+            font-weight: bold;
+        }
+        td.status-fail {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% if logs %}
+            <!-- Login History -->
+            <h3>Login History</h3>
+            <table>
+                <tr>
+                    <th>Username</th>
+                    <th>Login Time</th>
+                    <th>IP Address</th>
+                    <th>Status</th>
+                </tr>
+                {% for username, login_time, ip, success in logs %}
+                <tr>
+                    <td>{{ username }}</td>
+                    <td>{{ login_time }}</td>
+                    <td>{{ ip }}</td>
+                    <td class="{{ 'status-success' if success == 1 else 'status-fail' }}">
+                        {% if success == 1 %}✅{% else %}❌{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <!-- Admin Login Form -->
+            <h3>Admin Login</h3>
+            {% if message %}
+                <p class="message">{{ message }}</p>
+            {% endif %}
+            <form method="POST">
+                <input type="text" name="username" placeholder="Username" required>
+                <input type="password" name="password" placeholder="Password" required>
+                <input type="submit" value="Login">
+            </form>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import hashlib
 from datetime import datetime
 from database import get_connection
-from ip import checkip , blockip,get_ip
+from ip import checkip,blockip,get_ip
 
 MAX_ATTEMPTS=5
 
@@ -12,74 +12,74 @@ def hash_password(username,password):
     salt=generate_salt(username)
     return hashlib.sha256((password+salt).encode()).hexdigest()
 
-
-
-def register():
+def register_user(username,password):
     conn=get_connection()
     c=conn.cursor()
 
-    username=input("Enter username:  ")
-    password=input("Enter password:   ")
-    
-    
-    c.execute("SELECT* FROM users WHERE username=?",(username,))
-    if c.fetchall():
-        print("user already exists")
+    c.execute("SELECT*FROM users WHERE username=?",(username,))
+    if c.fetchone():
         conn.close()
-        return
+        return "User already exists"
     
+
     hashed=hash_password(username,password)
     c.execute("INSERT INTO users (username,password) VALUES (?,?)",(username,hashed))
     conn.commit()
     conn.close()
-    print("Registration successful")
+    return "Registration successful"
 
-
-def log_in():
+def login_user(username,password):
     conn=get_connection()
     c=conn.cursor()
-
-    username=input("Enter username:  ")
-    password=input("Enter password:  ")
     ip=get_ip()
 
     if checkip(ip):
-        print(f"Access denied: IP {ip} is blocked")
         conn.close()
-        return
-
-    c.execute("SELECT * FROM users WHERE username=?",(username,))
+        return f"Access denied: IP {ip} is blocked"
+    
+    c.execute("SELECT*FROM users WHERE username=?",(username,))
     user=c.fetchone()
-
     if not user:
-        print("User not found")
+        c.execute("INSERT INTO login_history (username,ip_address,success) VALUES (?,?,0)",(username,ip))
+        conn.commit()
         conn.close()
-        return
-    db_username, db_password, attempts, blocked=user
+        return "User not found"
+    
 
+    db_username,db_password,attempts,blocked=user
     if blocked:
-        print("Account is blocked")
         conn.close()
-        return
+        return "Account is blocked"
+    
     
     hashed=hash_password(username,password)
-
     if hashed==db_password:
-        print("Log in successful")
         c.execute("UPDATE users SET attempts=0 WHERE username=?",(username,))
-        c.execute("INSERT INTO login_history (username, ip_address, success) VALUES (?, ?, 1)", (username, ip))
+        c.execute("INSERT INTO login_history (username,ip_address,success) VALUES (?,?,1)",(username,ip))
+        conn.commit()
+        conn.close()
+        return "Login successful"
     else:
         attempts+=1
-        print(f" Wrong password. Attempt {attempts}/{MAX_ATTEMPTS}")
-        c.execute("INSERT INTO login_history (username, ip_address, success) VALUES (?, ?, 0)", (username, ip))
+        c.execute("INSERT INTO login_history (username,ip_address,success) VALUES (?,?,0)",(username,ip))
         if attempts>=MAX_ATTEMPTS:
-            print("Account blocked")
-            c.execute("UPDATE users set blocked=1 WHERE  username=?",(username,))
-        
+            c.execute("UPDATE users SET blocked=1 WHERE username=?",(username,))
         c.execute("UPDATE users SET attempts=? WHERE username=?",(attempts,username))
+        conn.commit()
+        conn.close()
         blockip(ip)
-    conn.commit()
+        return "Wrong password"
+
+def get_all_logins():
+    conn=get_connection()
+    c=conn.cursor()
+    c.execute(
+        """
+        SELECT username,login_time,ip_address,success
+        FROM login_history
+        ORDER BY login_time DESC
+        """
+    )
+    logs=c.fetchall()
     conn.close()
-
-
-
+    return logs

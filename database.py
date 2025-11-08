@@ -18,23 +18,18 @@ def init_db():
     )
 
 """)
-    c.execute("""
-    CREATE TABLE IF NOT EXISTS login_history(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT,
-        login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (username) REFERENCES users(username)  
-        )
-""")
-    try:
-      c.execute("ALTER TABLE login_history ADD COLUMN ip_address TEXT;")
-    except sqlite3.OperationalError:
-        pass
+    
 
-    try:
-        c.execute("ALTER TABLE login_history ADD COLUMN success INTEGER;")
-    except sqlite3.OperationalError:
-        pass
+    c.execute("""
+CREATE TABLE IF NOT EXISTS login_history(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address TEXT,
+    success INTEGER,
+    FOREIGN KEY (username) REFERENCES users(username)
+)
+""")
 
 
     c.execute("""
