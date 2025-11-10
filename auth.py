@@ -43,7 +43,7 @@ def login_user(username,password):
         c.execute("INSERT INTO login_history (username,ip_address,success) VALUES (?,?,0)",(username,ip))
         conn.commit()
         conn.close()
-        return "User not found"
+        return "Wrong username or password"
     
 
     db_username,db_password,attempts,blocked=user
@@ -68,7 +68,7 @@ def login_user(username,password):
         conn.commit()
         conn.close()
         blockip(ip)
-        return "Wrong password"
+        return "Wrong username or password"
 
 def get_all_logins():
     conn=get_connection()
