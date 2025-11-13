@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request
 from auth import register_user, login_user, get_all_logins
 from database import init_db
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 app=Flask(__name__)
 
-admin_username="admin"
-admin_password="adminadmin"
+admin_username=os.environ['ADMIN_USERNAME']
+admin_password=os.environ['ADMIN_PASSWORD']
 
 init_db()
 
